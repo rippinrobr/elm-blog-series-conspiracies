@@ -24,7 +24,8 @@ viewSummaries summary =
             [ text summary.title ]
         ,div [ class "conspiracy-summary"] 
             [ p [] [text summary.summary ]]
-        ,div [] [ text "View More Link Here"]    
+        ,div [] 
+           [a [href "#"] [(text "View More Link Here")]]
         ]
  
 viewTag selectedTag tag =
