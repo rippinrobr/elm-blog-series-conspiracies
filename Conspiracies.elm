@@ -1,4 +1,4 @@
-module PhotoGroove exposing (..)
+module Conspiracies exposing (..)
  
 import Html exposing (..)
 import Html.Attributes exposing (..)
