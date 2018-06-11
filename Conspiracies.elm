@@ -41,7 +41,8 @@ initialModel =
               , "9/11"
               , "Deep State"
               , "New World Order"
-              , "UFO"]       
+              , "UFO"
+              , "Untagged"]       
      , selectedTag = "All"
      , summaryPlaceholders = [
          { title = "Conspiracy Title Placeholder"
