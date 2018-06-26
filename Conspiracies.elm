@@ -26,7 +26,7 @@ type alias Model = {
 }
 
 type Msg
-    = SendHttpRequest --(String)
+    = SendHttpRequest (String)
     | DataReceived (Result Http.Error (List Tag))
     | SelectTag (String)
 
@@ -56,7 +56,7 @@ viewSummaries summary =
 viewTag selectedTag tag =
     div
         [ classList [ ("tag",True), ( "selected", selectedTag == tag.name ) ]
-        , onClick SendHttpRequest
+        , onClick (SendHttpRequest tag.name)
         ]
         [text tag.name]
  
@@ -88,6 +88,7 @@ httpCommand =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    
     case msg of 
         DataReceived (Ok tags) -> 
             ({ model | tags = tags, errorMsg = Nothing }, Cmd.none)
@@ -95,8 +96,8 @@ update msg model =
         DataReceived (Err httpError) ->
             ({ model | errorMsg = Just (createErrorMessage httpError) }, Cmd.none)
 
-        SendHttpRequest ->  
-            ( model, httpCommand )
+        SendHttpRequest tag ->  
+            ( { model | selectedTag = tag }, httpCommand )
 
         SelectTag tag -> 
             ({ model | selectedTag = tag }, Cmd.none)

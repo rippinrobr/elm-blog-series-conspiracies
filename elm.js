@@ -9188,7 +9188,13 @@ var _user$project$Conspiracies$update = F2(
 					};
 				}
 			case 'SendHttpRequest':
-				return {ctor: '_Tuple2', _0: model, _1: _user$project$Conspiracies$httpCommand};
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{selectedTag: _p1._0}),
+					_1: _user$project$Conspiracies$httpCommand
+				};
 			default:
 				return {
 					ctor: '_Tuple2',
@@ -9199,7 +9205,9 @@ var _user$project$Conspiracies$update = F2(
 				};
 		}
 	});
-var _user$project$Conspiracies$SendHttpRequest = {ctor: 'SendHttpRequest'};
+var _user$project$Conspiracies$SendHttpRequest = function (a) {
+	return {ctor: 'SendHttpRequest', _0: a};
+};
 var _user$project$Conspiracies$viewTag = F2(
 	function (selectedTag, tag) {
 		return A2(
@@ -9222,7 +9230,8 @@ var _user$project$Conspiracies$viewTag = F2(
 					}),
 				_1: {
 					ctor: '::',
-					_0: _elm_lang$html$Html_Events$onClick(_user$project$Conspiracies$SendHttpRequest),
+					_0: _elm_lang$html$Html_Events$onClick(
+						_user$project$Conspiracies$SendHttpRequest(tag.name)),
 					_1: {ctor: '[]'}
 				}
 			},
