@@ -3,7 +3,7 @@ module Conspiracies exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
- 
+import Http exposing (Error)
   
 view model =
     div [ class "container-fluid" ]
@@ -58,10 +58,10 @@ initialModel =
     }
  
 update msg model =
-    if msg.operation == "SELECT_TAG" then
-        { model | selectedTag = msg.data }
-    else
-        model
+    case msg.operation of 
+        "SELECT_TAG" -> { model | selectedTag = msg.data }
+        "GET_TAGS" -> {}
+        _ -> model
  
 main =
     Html.beginnerProgram
