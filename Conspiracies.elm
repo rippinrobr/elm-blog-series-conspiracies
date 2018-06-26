@@ -1,23 +1,48 @@
 module Conspiracies exposing (..)
- 
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
-  
+import Json.Decode exposing (..)
+
+type alias Tag = {
+    id : Int
+    ,name : String
+    ,approved : Int
+}
+
+type alias ConspiracySummary = {
+    id : Int
+    ,title : String
+    ,summary : String
+
+}
+type alias Model = {
+    tags : List Tag      
+    , errorMsg : Maybe String
+    , selectedTag : String
+    , summaries : List ConspiracySummary
+}
+
+type Msg
+    = SendHttpRequest --(String)
+    | DataReceived (Result Http.Error (List Tag))
+    | SelectTag (String)
+
 view model =
-    div [ class "container-fluid" ]
+    div [ class "container-fluid" ] --[]
         [ div  [ class "row" ] 
           [
             div [ class "col-md-2 d-none d-md-block bg-light sidebar"]
              (List.map (viewTag model.selectedTag) model.tags)
            ,div [ class "col-md-9 ml-sm-auto col-lg-10 px-4" ]
               [ div [ class "content-heading" ] [ h2 [] [ text (model.selectedTag ++ " Conspiracies") ]]
-              , div [] (List.map (viewSummaries) model.summaryPlaceholders)
+              , div [] (List.map (viewSummaries) model.summaries)
               ]
           ]
         ]
- 
+
 viewSummaries summary = 
     div [ class "conspiracy-tease"]
         [ div [ class "conspiracy-title"] 
@@ -27,45 +52,80 @@ viewSummaries summary =
         ,div [] 
            [a [href "#"] [(text "View More Link Here")]]
         ]
- 
+
 viewTag selectedTag tag =
     div
-        [ classList [ ("tag",True), ( "selected", selectedTag == tag ) ]
-        , onClick { operation = "SELECT_TAG", data = tag }
+        [ classList [ ("tag",True), ( "selected", selectedTag == tag.name ) ]
+        , onClick SendHttpRequest
         ]
-        [text tag]
+        [text tag.name]
  
- 
-initialModel =
-    { tags = ["All"
-              , "9/11"
-              , "Deep State"
-              , "New World Order"
-              , "UFO"
-              , "Untagged"]       
-     , selectedTag = "All"
-     , summaryPlaceholders = [
-         { title = "Conspiracy Title Placeholder"
-           ,summary = "Concept of the number one, rogue with pretty stories for which there's little good evidence from which we spring Hypatia a mote of dust suspended in a sunbeam hydrogen atoms take root and flourish gathered by gravity Hypatia! Vangelis extraplanetary made in the interiors of collapsing stars vanquish the impossible! Birth galaxies. Inconspicuous motes of rock and gas Tunguska event, Orion's sword trillion! Worldlets vastness is bearable only through love rich in heavy atoms as a patch of light tesseract and billions upon billions upon billions upon billions upon billions upon billions upon billions!"
-         }
-         ,{ title = "Conspiracy Title Placeholder"
-            ,summary = "Emerged into consciousness intelligent beings, science the sky calls to us the ash of stellar alchemy laws of physics, dream of the mind's eye. Something incredible is waiting to be known billions upon billions decipherment not a sunrise but a galaxyrise descended from astronomers radio telescope concept of the number one muse about Euclid tesseract billions upon billions, preserve and cherish that pale blue dot intelligent beings tingling of the spine Sea of Tranquility Hypatia. Globular star cluster rich in mystery culture descended from astronomers ship of the imagination Apollonius of Perga. Birth Apollonius of Perga. Dispassionate extraterrestrial observer. How far away and billions upon billions upon billions upon billions upon billions upon billions upon billions!"
-         }
-         ,{ title = "Conspiracy Title Placeholder"
-            ,summary = "Colonies, hydrogen atoms Flatland tingling of the spine quasar. Billions upon billions! As a patch of light decipherment consciousness permanence of the stars cosmic fugue brain is the seed of intelligence from which we spring astonishment science, take root and flourish explorations! Apollonius of Perga intelligent beings. Cambrian explosion? Consciousness, network of wormholes. Intelligent beings a mote of dust suspended in a sunbeam encyclopaedia galactica, Euclid laws of physics the only home we've ever known a billion trillion? A mote of dust suspended in a sunbeam, great turbulent clouds Vangelis with pretty stories for which there's little good evidence brain is the seed of intelligence hearts of the stars and billions upon billions upon billions upon billions upon billions upon billions upon billions."
-         }
-     ]
+
+init : ( Model, Cmd Msg )
+init =
+    ({ tags = [ { id = 1
+                , name = "All" 
+                , approved = 1 }]
+    , errorMsg = Nothing 
+    , selectedTag = "All"
+    , summaries = []
     }
- 
+    , Cmd.none
+    )
+
+tagDecoder : Decoder Tag
+tagDecoder = 
+    map3 Tag  
+        (field "id" int)
+        (field "name" string)
+        (field "approved" int)
+
+httpCommand : Cmd Msg
+httpCommand =
+    Json.Decode.list tagDecoder
+        |> Http.get "http://localhost:8088/tags"
+        |> Http.send DataReceived
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg.operation of 
-        "SELECT_TAG" -> { model | selectedTag = msg.data }
-        "GET_TAGS" -> {}
-        _ -> model
- 
+    case msg of 
+        DataReceived (Ok tags) -> 
+            ({ model | tags = tags, errorMsg = Nothing }, Cmd.none)
+
+        DataReceived (Err httpError) ->
+            ({ model | errorMsg = Just (createErrorMessage httpError) }, Cmd.none)
+
+        SendHttpRequest ->  
+            ( model, httpCommand )
+
+        SelectTag tag -> 
+            ({ model | selectedTag = tag }, Cmd.none)
+
+        -- _ -> (model, Cmd.none)
+
+createErrorMessage : Http.Error -> String
+createErrorMessage httpError =
+    case httpError of
+        Http.BadUrl message ->
+            message
+
+        Http.Timeout ->
+            "Server is taking too long to respond. Please try again later."
+
+        Http.NetworkError ->
+            "It appears you don't have an Internet connection right now."
+
+        Http.BadStatus response ->
+            response.status.message
+
+        Http.BadPayload message response ->
+            message
+
+main : Program Never Model Msg
 main =
-    Html.beginnerProgram
-        { model = initialModel
+    program
+        { init = init
         , view = view
         , update = update
+        , subscriptions = \_ -> Sub.none
         }
