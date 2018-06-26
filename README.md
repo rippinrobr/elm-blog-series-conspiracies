@@ -6,4 +6,4 @@ The code in this repository is part of a blog series that I am writing as I lear
 
 * [Post #1 Learning Elm - Conspiring to Build a Ui](https://www.myprogrammingadventure.org/posts/learning-elm/learning-elm-p4-conspiring-to-build-a-ui/)
 *  Post #2 Learning Elm - Fetching Data
-*  Post #3 Leanring Elm - Changing Data
+*  Post #3 Learning Elm - Changing Data
