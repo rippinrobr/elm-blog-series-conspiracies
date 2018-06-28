@@ -6,7 +6,6 @@ import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode exposing (..)
 
--- type alias Category = Tag 
 type alias Category = { 
     id : Int
     ,name : String
@@ -18,11 +17,11 @@ type alias Conspiracy = {
     ,page_id : String
     ,summary : String
     ,content : String
-    ,bacground: String
+    ,background: String
 }
 
 type alias Model = {
-    tags : List Category      
+    categories : List Category      
     , errorMsg : Maybe String
     , selectedTag : String
     , summaries : List Conspiracy
@@ -39,11 +38,11 @@ type Msg
 -- to  build out the navigation and display area.
 view : Model -> (Html Msg)
 view model =
-    div [ class "container-fluid" ] --[]
+    div [ class "container-fluid" ] 
         [ div  [ class "row" ] 
             [
                 div [ class "col-md-2 d-none d-md-block bg-light sidebar"]
-                (List.map (viewTag model.selectedTag) model.tags)
+                (List.map (viewTag model.selectedTag) model.categories)
             ,div [ class "col-md-9 ml-sm-auto col-lg-10 px-4" ]
                 [ div [ class "content-heading" ] [ h2 [] [ text (model.selectedTag ++ " Conspiracies") ]]
                 , div [] (List.map (viewSummaries) model.summaries)
@@ -70,7 +69,7 @@ viewSummaries summary =
 viewTag : String -> Category -> (Html Msg)
 viewTag selectedTag category =
     div
-        [ classList [ ("tag",True), ( "selected", selectedTag == category.name ) ]
+        [ classList [ ("category",True), ( "selected", selectedTag == category.name ) ]
         , onClick (SendConspiraciesRequest category)
         ]
         [text category.name]
@@ -82,7 +81,7 @@ viewTag selectedTag category =
 -- httpCommand function.
 init : ( Model, Cmd Msg )
 init = 
-    let model = { tags = []
+    let model = { categories = []
                 , errorMsg = Nothing 
                 , selectedTag = "All"
                 , summaries = []
@@ -115,8 +114,8 @@ categoryDecoder =
 -- getTagsCommand is responsible for making the HTTP GET
 -- call to fetch the tags.  |> is a pipe operator and I'm using to create a 'pipeline'.  
 -- The Json.Decode.list tagDecoder is passed to the Http.get call as the last parameter
--- and is responsible for turning the JSON Array of tag object into an Elm list of Tags.
--- The List of tags from the decoder become the parameter of the DataRecieved Msg and
+-- and is responsible for turning the JSON Array of categories into an Elm list of Categories.
+-- The List of Categories from the decoder become the parameter of the DataRecieved Msg and
 -- eventually become the navigation list
 getTagsCommand : Cmd Msg
 getTagsCommand =
@@ -125,10 +124,10 @@ getTagsCommand =
         |> Http.send DataReceived
 
 -- getConspiracies is responsible for making the HTTP GET
--- call to fetch the conspiracies for a given tag.  The |> is a pipe operator and I'm 
+-- call to fetch the conspiracies for a given category.  The |> is a pipe operator and I'm 
 -- using to create a 'pipeline'.  The Json.Decode.list conspiracyDecoder is passed to 
 -- the Http.get call as the last parameter  and is responsible for turning the JSON 
--- Array of tag object into an Elm list of Conspiracies.  The List of conspiracies 
+-- Array of Category object into an Elm list of Conspiracies.  The List of conspiracies 
 -- from the decoder become the parameter of the DataRecieved Msg and
 -- eventually become the content on the right of the page
 getConspiracies : Int -> Cmd Msg
@@ -143,8 +142,8 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     
     case msg of 
-        DataReceived (Ok tags) -> 
-            ({ model | tags = tags, errorMsg = Nothing }, Cmd.none)
+        DataReceived (Ok categories) -> 
+            ({ model | categories = categories, errorMsg = Nothing }, Cmd.none)
 
         DataReceived (Err httpError) ->
             ({ model | errorMsg = Just (createErrorMessage httpError) }, Cmd.none)

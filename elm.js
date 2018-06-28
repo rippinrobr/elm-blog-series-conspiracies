@@ -9129,7 +9129,7 @@ var _user$project$Conspiracies$categoryDecoder = A4(
 	A2(_elm_lang$core$Json_Decode$field, 'approved', _elm_lang$core$Json_Decode$int));
 var _user$project$Conspiracies$Conspiracy = F5(
 	function (a, b, c, d, e) {
-		return {title: a, page_id: b, summary: c, content: d, bacground: e};
+		return {title: a, page_id: b, summary: c, content: d, background: e};
 	});
 var _user$project$Conspiracies$conspiracyDecoder = A6(
 	_elm_lang$core$Json_Decode$map5,
@@ -9141,7 +9141,7 @@ var _user$project$Conspiracies$conspiracyDecoder = A6(
 	A2(_elm_lang$core$Json_Decode$field, 'background', _elm_lang$core$Json_Decode$string));
 var _user$project$Conspiracies$Model = F4(
 	function (a, b, c, d) {
-		return {tags: a, errorMsg: b, selectedTag: c, summaries: d};
+		return {categories: a, errorMsg: b, selectedTag: c, summaries: d};
 	});
 var _user$project$Conspiracies$SelectTag = function (a) {
 	return {ctor: 'SelectTag', _0: a};
@@ -9183,7 +9183,7 @@ var _user$project$Conspiracies$getTagsCommand = A2(
 		_elm_lang$core$Json_Decode$list(_user$project$Conspiracies$categoryDecoder)));
 var _user$project$Conspiracies$init = function () {
 	var model = {
-		tags: {ctor: '[]'},
+		categories: {ctor: '[]'},
 		errorMsg: _elm_lang$core$Maybe$Nothing,
 		selectedTag: 'All',
 		summaries: {ctor: '[]'}
@@ -9200,7 +9200,7 @@ var _user$project$Conspiracies$update = F2(
 						ctor: '_Tuple2',
 						_0: _elm_lang$core$Native_Utils.update(
 							model,
-							{tags: _p1._0._0, errorMsg: _elm_lang$core$Maybe$Nothing}),
+							{categories: _p1._0._0, errorMsg: _elm_lang$core$Maybe$Nothing}),
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				} else {
@@ -9275,7 +9275,7 @@ var _user$project$Conspiracies$viewTag = F2(
 				_0: _elm_lang$html$Html_Attributes$classList(
 					{
 						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'tag', _1: true},
+						_0: {ctor: '_Tuple2', _0: 'category', _1: true},
 						_1: {
 							ctor: '::',
 							_0: {
@@ -9328,7 +9328,7 @@ var _user$project$Conspiracies$view = function (model) {
 						A2(
 							_elm_lang$core$List$map,
 							_user$project$Conspiracies$viewTag(model.selectedTag),
-							model.tags)),
+							model.categories)),
 					_1: {
 						ctor: '::',
 						_0: A2(
