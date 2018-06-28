@@ -9158,7 +9158,7 @@ var _user$project$Conspiracies$getConspiracies = function (category_id) {
 			_elm_lang$core$String$concat(
 				{
 					ctor: '::',
-					_0: 'http://localhost:8088/tags/',
+					_0: 'http://localhost:8088/categories/',
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$core$Basics$toString(category_id),
@@ -9179,7 +9179,7 @@ var _user$project$Conspiracies$getTagsCommand = A2(
 	_user$project$Conspiracies$DataReceived,
 	A2(
 		_elm_lang$http$Http$get,
-		'http://localhost:8088/tags',
+		'http://localhost:8088/categories',
 		_elm_lang$core$Json_Decode$list(_user$project$Conspiracies$categoryDecoder)));
 var _user$project$Conspiracies$init = function () {
 	var model = {

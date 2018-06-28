@@ -120,7 +120,7 @@ categoryDecoder =
 getTagsCommand : Cmd Msg
 getTagsCommand =
     Json.Decode.list categoryDecoder
-        |> Http.get "http://localhost:8088/tags"
+        |> Http.get "http://localhost:8088/categories"
         |> Http.send DataReceived
 
 -- getConspiracies is responsible for making the HTTP GET
@@ -133,7 +133,7 @@ getTagsCommand =
 getConspiracies : Int -> Cmd Msg
 getConspiracies category_id =
     Json.Decode.list conspiracyDecoder
-        |> Http.get (String.concat ["http://localhost:8088/tags/", (toString category_id), "/conspiracies"])
+        |> Http.get (String.concat ["http://localhost:8088/categories/", (toString category_id), "/conspiracies"])
         |> Http.send ConspiracyDataReceived
 
 
