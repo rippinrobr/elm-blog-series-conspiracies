@@ -9117,13 +9117,13 @@ var _user$project$Conspiracies$viewSummaries = function (summary) {
 			}
 		});
 };
-var _user$project$Conspiracies$Tag = F3(
+var _user$project$Conspiracies$Category = F3(
 	function (a, b, c) {
 		return {id: a, name: b, approved: c};
 	});
-var _user$project$Conspiracies$tagDecoder = A4(
+var _user$project$Conspiracies$categoryDecoder = A4(
 	_elm_lang$core$Json_Decode$map3,
-	_user$project$Conspiracies$Tag,
+	_user$project$Conspiracies$Category,
 	A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int),
 	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
 	A2(_elm_lang$core$Json_Decode$field, 'approved', _elm_lang$core$Json_Decode$int));
@@ -9149,7 +9149,7 @@ var _user$project$Conspiracies$SelectTag = function (a) {
 var _user$project$Conspiracies$ConspiracyDataReceived = function (a) {
 	return {ctor: 'ConspiracyDataReceived', _0: a};
 };
-var _user$project$Conspiracies$getConspiracies = function (tag_id) {
+var _user$project$Conspiracies$getConspiracies = function (category_id) {
 	return A2(
 		_elm_lang$http$Http$send,
 		_user$project$Conspiracies$ConspiracyDataReceived,
@@ -9161,7 +9161,7 @@ var _user$project$Conspiracies$getConspiracies = function (tag_id) {
 					_0: 'http://localhost:8088/tags/',
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$core$Basics$toString(tag_id),
+						_0: _elm_lang$core$Basics$toString(category_id),
 						_1: {
 							ctor: '::',
 							_0: '/conspiracies',
@@ -9180,7 +9180,7 @@ var _user$project$Conspiracies$getTagsCommand = A2(
 	A2(
 		_elm_lang$http$Http$get,
 		'http://localhost:8088/tags',
-		_elm_lang$core$Json_Decode$list(_user$project$Conspiracies$tagDecoder)));
+		_elm_lang$core$Json_Decode$list(_user$project$Conspiracies$categoryDecoder)));
 var _user$project$Conspiracies$init = function () {
 	var model = {
 		tags: {ctor: '[]'},
@@ -9267,7 +9267,7 @@ var _user$project$Conspiracies$SendConspiraciesRequest = function (a) {
 	return {ctor: 'SendConspiraciesRequest', _0: a};
 };
 var _user$project$Conspiracies$viewTag = F2(
-	function (selectedTag, tag) {
+	function (selectedTag, category) {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -9281,7 +9281,7 @@ var _user$project$Conspiracies$viewTag = F2(
 							_0: {
 								ctor: '_Tuple2',
 								_0: 'selected',
-								_1: _elm_lang$core$Native_Utils.eq(selectedTag, tag.name)
+								_1: _elm_lang$core$Native_Utils.eq(selectedTag, category.name)
 							},
 							_1: {ctor: '[]'}
 						}
@@ -9289,13 +9289,13 @@ var _user$project$Conspiracies$viewTag = F2(
 				_1: {
 					ctor: '::',
 					_0: _elm_lang$html$Html_Events$onClick(
-						_user$project$Conspiracies$SendConspiraciesRequest(tag)),
+						_user$project$Conspiracies$SendConspiraciesRequest(category)),
 					_1: {ctor: '[]'}
 				}
 			},
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html$text(tag.name),
+				_0: _elm_lang$html$Html$text(category.name),
 				_1: {ctor: '[]'}
 			});
 	});

@@ -6,7 +6,8 @@ import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode exposing (..)
 
-type alias Tag = {
+-- type alias Category = Tag 
+type alias Category = { 
     id : Int
     ,name : String
     ,approved : Int
@@ -21,7 +22,7 @@ type alias Conspiracy = {
 }
 
 type alias Model = {
-    tags : List Tag      
+    tags : List Category      
     , errorMsg : Maybe String
     , selectedTag : String
     , summaries : List Conspiracy
@@ -29,8 +30,8 @@ type alias Model = {
 
 type Msg
     = SendGetTagsRequest (String)
-    | SendConspiraciesRequest (Tag)
-    | DataReceived (Result Http.Error (List Tag))
+    | SendConspiraciesRequest (Category)
+    | DataReceived (Result Http.Error (List Category))
     | ConspiracyDataReceived (Result Http.Error (List Conspiracy))
     | SelectTag (String)
 
@@ -66,13 +67,13 @@ viewSummaries summary =
 -- viewTag creates the navigation div for each category.  The function als
 -- determines if the current category is the one the user has selected. If 
 -- it is then it adds the selected class.
-viewTag : String -> Tag -> (Html Msg)
-viewTag selectedTag tag =
+viewTag : String -> Category -> (Html Msg)
+viewTag selectedTag category =
     div
-        [ classList [ ("tag",True), ( "selected", selectedTag == tag.name ) ]
-        , onClick (SendConspiraciesRequest tag)
+        [ classList [ ("tag",True), ( "selected", selectedTag == category.name ) ]
+        , onClick (SendConspiraciesRequest category)
         ]
-        [text tag.name]
+        [text category.name]
 
 
 -- init does what you might think it does, it initializes the applicaiton.
@@ -91,7 +92,7 @@ init =
         ( model,  getTagsCommand) 
 
 -- conspiracyDecoder is the code that pulls the data out of the JSON object
--- and creates a Tag object
+-- and creates a Conspiracy object
 conspiracyDecoder : Decoder Conspiracy
 conspiracyDecoder = 
     map5 Conspiracy  
@@ -102,11 +103,11 @@ conspiracyDecoder =
         (field "background" string)
 
 
--- tagDecoder is the code that pulls the data out of the JSON object
--- and creates a Tag object
-tagDecoder : Decoder Tag
-tagDecoder = 
-    map3 Tag  
+-- categoryDecoder is the code that pulls the data out of the JSON object
+-- and creates a Category object
+categoryDecoder : Decoder Category
+categoryDecoder = 
+    map3 Category   
         (field "id" int)
         (field "name" string)
         (field "approved" int)
@@ -119,7 +120,7 @@ tagDecoder =
 -- eventually become the navigation list
 getTagsCommand : Cmd Msg
 getTagsCommand =
-    Json.Decode.list tagDecoder
+    Json.Decode.list categoryDecoder
         |> Http.get "http://localhost:8088/tags"
         |> Http.send DataReceived
 
@@ -131,9 +132,9 @@ getTagsCommand =
 -- from the decoder become the parameter of the DataRecieved Msg and
 -- eventually become the content on the right of the page
 getConspiracies : Int -> Cmd Msg
-getConspiracies tag_id =
+getConspiracies category_id =
     Json.Decode.list conspiracyDecoder
-        |> Http.get (String.concat ["http://localhost:8088/tags/", (toString tag_id), "/conspiracies"])
+        |> Http.get (String.concat ["http://localhost:8088/tags/", (toString category_id), "/conspiracies"])
         |> Http.send ConspiracyDataReceived
 
 
@@ -154,14 +155,14 @@ update msg model =
         ConspiracyDataReceived (Err httpError) ->
             ({ model | errorMsg = Just (createErrorMessage httpError) }, Cmd.none)
         
-        SendConspiraciesRequest tag ->
-            ( { model | selectedTag = tag.name }, (getConspiracies tag.id) )
+        SendConspiraciesRequest category ->
+            ( { model | selectedTag = category.name }, (getConspiracies category.id) )
             
-        SendGetTagsRequest tag ->  
-            ( { model | selectedTag = tag }, getTagsCommand )
+        SendGetTagsRequest category ->  
+            ( { model | selectedTag = category }, getTagsCommand )
 
-        SelectTag tag -> 
-            ({ model | selectedTag = tag }, Cmd.none)
+        SelectTag category -> 
+            ({ model | selectedTag = category }, Cmd.none)
 
 -- createErrorMessage generates a string that gives the user a 
 -- human understandable error message 
