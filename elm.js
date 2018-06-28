@@ -9048,20 +9048,6 @@ var _user$project$Conspiracies$createErrorMessage = function (httpError) {
 			return _p0._0;
 	}
 };
-var _user$project$Conspiracies$init = {
-	ctor: '_Tuple2',
-	_0: {
-		tags: {
-			ctor: '::',
-			_0: {id: 1, name: 'All', approved: 1},
-			_1: {ctor: '[]'}
-		},
-		errorMsg: _elm_lang$core$Maybe$Nothing,
-		selectedTag: 'All',
-		summaries: {ctor: '[]'}
-	},
-	_1: _elm_lang$core$Platform_Cmd$none
-};
 var _user$project$Conspiracies$viewSummaries = function (summary) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -9121,7 +9107,7 @@ var _user$project$Conspiracies$viewSummaries = function (summary) {
 								},
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text('View More Link Here'),
+									_0: _elm_lang$html$Html$text('More...'),
 									_1: {ctor: '[]'}
 								}),
 							_1: {ctor: '[]'}
@@ -9141,10 +9127,18 @@ var _user$project$Conspiracies$tagDecoder = A4(
 	A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int),
 	A2(_elm_lang$core$Json_Decode$field, 'name', _elm_lang$core$Json_Decode$string),
 	A2(_elm_lang$core$Json_Decode$field, 'approved', _elm_lang$core$Json_Decode$int));
-var _user$project$Conspiracies$ConspiracySummary = F3(
-	function (a, b, c) {
-		return {id: a, title: b, summary: c};
+var _user$project$Conspiracies$Conspiracy = F5(
+	function (a, b, c, d, e) {
+		return {title: a, page_id: b, summary: c, content: d, bacground: e};
 	});
+var _user$project$Conspiracies$conspiracyDecoder = A6(
+	_elm_lang$core$Json_Decode$map5,
+	_user$project$Conspiracies$Conspiracy,
+	A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'page_id', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'summary', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'content', _elm_lang$core$Json_Decode$string),
+	A2(_elm_lang$core$Json_Decode$field, 'background', _elm_lang$core$Json_Decode$string));
 var _user$project$Conspiracies$Model = F4(
 	function (a, b, c, d) {
 		return {tags: a, errorMsg: b, selectedTag: c, summaries: d};
@@ -9152,16 +9146,50 @@ var _user$project$Conspiracies$Model = F4(
 var _user$project$Conspiracies$SelectTag = function (a) {
 	return {ctor: 'SelectTag', _0: a};
 };
+var _user$project$Conspiracies$ConspiracyDataReceived = function (a) {
+	return {ctor: 'ConspiracyDataReceived', _0: a};
+};
+var _user$project$Conspiracies$getConspiracies = function (tag_id) {
+	return A2(
+		_elm_lang$http$Http$send,
+		_user$project$Conspiracies$ConspiracyDataReceived,
+		A2(
+			_elm_lang$http$Http$get,
+			_elm_lang$core$String$concat(
+				{
+					ctor: '::',
+					_0: 'http://localhost:8088/tags/',
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$core$Basics$toString(tag_id),
+						_1: {
+							ctor: '::',
+							_0: '/conspiracies',
+							_1: {ctor: '[]'}
+						}
+					}
+				}),
+			_elm_lang$core$Json_Decode$list(_user$project$Conspiracies$conspiracyDecoder)));
+};
 var _user$project$Conspiracies$DataReceived = function (a) {
 	return {ctor: 'DataReceived', _0: a};
 };
-var _user$project$Conspiracies$httpCommand = A2(
+var _user$project$Conspiracies$getTagsCommand = A2(
 	_elm_lang$http$Http$send,
 	_user$project$Conspiracies$DataReceived,
 	A2(
 		_elm_lang$http$Http$get,
 		'http://localhost:8088/tags',
 		_elm_lang$core$Json_Decode$list(_user$project$Conspiracies$tagDecoder)));
+var _user$project$Conspiracies$init = function () {
+	var model = {
+		tags: {ctor: '[]'},
+		errorMsg: _elm_lang$core$Maybe$Nothing,
+		selectedTag: 'All',
+		summaries: {ctor: '[]'}
+	};
+	return {ctor: '_Tuple2', _0: model, _1: _user$project$Conspiracies$getTagsCommand};
+}();
 var _user$project$Conspiracies$update = F2(
 	function (msg, model) {
 		var _p1 = msg;
@@ -9187,13 +9215,43 @@ var _user$project$Conspiracies$update = F2(
 						_1: _elm_lang$core$Platform_Cmd$none
 					};
 				}
-			case 'SendHttpRequest':
+			case 'ConspiracyDataReceived':
+				if (_p1._0.ctor === 'Ok') {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{summaries: _p1._0._0, errorMsg: _elm_lang$core$Maybe$Nothing}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				} else {
+					return {
+						ctor: '_Tuple2',
+						_0: _elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errorMsg: _elm_lang$core$Maybe$Just(
+									_user$project$Conspiracies$createErrorMessage(_p1._0._0))
+							}),
+						_1: _elm_lang$core$Platform_Cmd$none
+					};
+				}
+			case 'SendConspiraciesRequest':
+				var _p2 = _p1._0;
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{selectedTag: _p2.name}),
+					_1: _user$project$Conspiracies$getConspiracies(_p2.id)
+				};
+			case 'SendGetTagsRequest':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{selectedTag: _p1._0}),
-					_1: _user$project$Conspiracies$httpCommand
+					_1: _user$project$Conspiracies$getTagsCommand
 				};
 			default:
 				return {
@@ -9205,8 +9263,8 @@ var _user$project$Conspiracies$update = F2(
 				};
 		}
 	});
-var _user$project$Conspiracies$SendHttpRequest = function (a) {
-	return {ctor: 'SendHttpRequest', _0: a};
+var _user$project$Conspiracies$SendConspiraciesRequest = function (a) {
+	return {ctor: 'SendConspiraciesRequest', _0: a};
 };
 var _user$project$Conspiracies$viewTag = F2(
 	function (selectedTag, tag) {
@@ -9231,7 +9289,7 @@ var _user$project$Conspiracies$viewTag = F2(
 				_1: {
 					ctor: '::',
 					_0: _elm_lang$html$Html_Events$onClick(
-						_user$project$Conspiracies$SendHttpRequest(tag.name)),
+						_user$project$Conspiracies$SendConspiraciesRequest(tag)),
 					_1: {ctor: '[]'}
 				}
 			},
@@ -9322,10 +9380,13 @@ var _user$project$Conspiracies$main = _elm_lang$html$Html$program(
 		init: _user$project$Conspiracies$init,
 		view: _user$project$Conspiracies$view,
 		update: _user$project$Conspiracies$update,
-		subscriptions: function (_p2) {
+		subscriptions: function (_p3) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();
+var _user$project$Conspiracies$SendGetTagsRequest = function (a) {
+	return {ctor: 'SendGetTagsRequest', _0: a};
+};
 
 var Elm = {};
 Elm['Conspiracies'] = Elm['Conspiracies'] || {};
