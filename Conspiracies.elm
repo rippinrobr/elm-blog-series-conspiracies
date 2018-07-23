@@ -23,18 +23,18 @@ type alias Conspiracy = {
 type alias Model = {
     categories : List Category      
     , errorMsg : Maybe String
-    , selectedTag : String
+    , selectedCategory : String
     , summaries : List Conspiracy
 }
 
 type Msg
-    = SendGetTagsRequest (String)
+    = SendGetCategoriesRequest (String)
     | SendConspiraciesRequest (Category)
     | DataReceived (Result Http.Error (List Category))
     | ConspiracyDataReceived (Result Http.Error (List Conspiracy))
-    | SelectTag (String)
+    | SelectCategory (String)
 
--- view Constructs the overall page layout calling viewTag and viewSummaries 
+-- view Constructs the overall page layout calling viewCategory and viewSummaries 
 -- to  build out the navigation and display area.
 view : Model -> (Html Msg)
 view model =
@@ -42,9 +42,9 @@ view model =
         [ div  [ class "row" ] 
             [
                 div [ class "col-md-2 d-none d-md-block bg-light sidebar"]
-                (List.map (viewTag model.selectedTag) model.categories)
+                (List.map (viewCategory model.selectedCategory) model.categories)
             ,div [ class "col-md-9 ml-sm-auto col-lg-10 px-4" ]
-                [ div [ class "content-heading" ] [ h2 [] [ text (model.selectedTag ++ " Conspiracies") ]]
+                [ div [ class "content-heading" ] [ h2 [] [ text (model.selectedCategory ++ " Conspiracies") ]]
                 , div [] (List.map (viewSummaries) model.summaries)
                 ]
             ]
@@ -63,13 +63,13 @@ viewSummaries summary =
             [a [href "#"] [(text "More...")]]
         ]
 
--- viewTag creates the navigation div for each category.  The function als
+-- viewCategory creates the navigation div for each category.  The function als
 -- determines if the current category is the one the user has selected. If 
 -- it is then it adds the selected class.
-viewTag : String -> Category -> (Html Msg)
-viewTag selectedTag category =
+viewCategory : String -> Category -> (Html Msg)
+viewCategory selectedCategory category =
     div
-        [ classList [ ("category",True), ( "selected", selectedTag == category.name ) ]
+        [ classList [ ("category",True), ( "selected", selectedCategory == category.name ) ]
         , onClick (SendConspiraciesRequest category)
         ]
         [text category.name]
@@ -83,12 +83,11 @@ init : ( Model, Cmd Msg )
 init = 
     let model = { categories = []
                 , errorMsg = Nothing 
-                , selectedTag = "All"
+                , selectedCategory = "All"
                 , summaries = []
                 }
-
     in 
-        ( model,  getTagsCommand) 
+        ( model,  getCategoriesCommand) 
 
 -- conspiracyDecoder is the code that pulls the data out of the JSON object
 -- and creates a Conspiracy object
@@ -111,14 +110,14 @@ categoryDecoder =
         (field "name" string)
         (field "approved" int)
 
--- getTagsCommand is responsible for making the HTTP GET
+-- getCategoriesCommand is responsible for making the HTTP GET
 -- call to fetch the tags.  |> is a pipe operator and I'm using to create a 'pipeline'.  
 -- The Json.Decode.list tagDecoder is passed to the Http.get call as the last parameter
 -- and is responsible for turning the JSON Array of categories into an Elm list of Categories.
 -- The List of Categories from the decoder become the parameter of the DataRecieved Msg and
 -- eventually become the navigation list
-getTagsCommand : Cmd Msg
-getTagsCommand =
+getCategoriesCommand : Cmd Msg
+getCategoriesCommand =
     Json.Decode.list categoryDecoder
         |> Http.get "http://localhost:8088/categories"
         |> Http.send DataReceived
@@ -155,13 +154,13 @@ update msg model =
             ({ model | errorMsg = Just (createErrorMessage httpError) }, Cmd.none)
         
         SendConspiraciesRequest category ->
-            ( { model | selectedTag = category.name }, (getConspiracies category.id) )
+            ( { model | selectedCategory = category.name }, (getConspiracies category.id) )
             
-        SendGetTagsRequest category ->  
-            ( { model | selectedTag = category }, getTagsCommand )
+        SendGetCategoriesRequest category ->  
+            ( { model | selectedCategory = category }, getCategoriesCommand )
 
-        SelectTag category -> 
-            ({ model | selectedTag = category }, Cmd.none)
+        SelectCategory category -> 
+            ({ model | selectedCategory = category }, Cmd.none)
 
 -- createErrorMessage generates a string that gives the user a 
 -- human understandable error message 
