@@ -5,5 +5,5 @@ The code in this repository is part of a blog series that I am writing as I lear
 ## The Posts
 
 * [Post #1 Learning Elm - Conspiring to Build a Ui](https://www.myprogrammingadventure.org/posts/learning-elm/learning-elm-p4-conspiring-to-build-a-ui/)
-* [Post #2 Learning Elm - Working with JSON](/posts/learning-elm/learning-elm-p5-working-with-json/)
+* [Post #2 Learning Elm - Working with JSON](https://www.myprogrammingadventure.org/posts/learning-elm/learning-elm-p5-working-with-json/)
 *  Post #3 Learning Elm - Changing Views
