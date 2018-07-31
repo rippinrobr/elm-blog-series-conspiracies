@@ -1,23 +1,58 @@
 module Conspiracies exposing (..)
- 
+
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
- 
-  
+import Http exposing (Error)
+import Json.Decode exposing (..)
+
+type alias Category = { 
+    id : Int
+    ,name : String
+    ,approved : Int
+}
+
+type alias Conspiracy = {
+    title : String
+    ,page_id : String
+    ,summary : String
+    ,content : String
+    ,background: String
+}
+
+type alias Model = {
+    categories : List Category      
+    , errorMsg : Maybe String
+    , selectedCategory : String
+    , summaries : List Conspiracy
+}
+
+type Msg
+    = SendGetCategoriesRequest (String)
+    | SendConspiraciesRequest (Category)
+    | DataReceived (Result Http.Error (List Category))
+    | ConspiracyDataReceived (Result Http.Error (List Conspiracy))
+    | SelectCategory (String)
+
+-- view Constructs the overall page layout calling viewCategory and viewSummaries 
+-- to  build out the navigation and display area.
+view : Model -> (Html Msg)
 view model =
-    div [ class "container-fluid" ]
+    div [ class "container-fluid" ] 
         [ div  [ class "row" ] 
-          [
-            div [ class "col-md-2 d-none d-md-block bg-light sidebar"]
-             (List.map (viewTag model.selectedTag) model.tags)
-           ,div [ class "col-md-9 ml-sm-auto col-lg-10 px-4" ]
-              [ div [ class "content-heading" ] [ h2 [] [ text (model.selectedTag ++ " Conspiracies") ]]
-              , div [] (List.map (viewSummaries) model.summaryPlaceholders)
-              ]
-          ]
+            [
+                div [ class "col-md-2 d-none d-md-block bg-light sidebar"]
+                (List.map (viewCategory model.selectedCategory) model.categories)
+            ,div [ class "col-md-9 ml-sm-auto col-lg-10 px-4" ]
+                [ div [ class "content-heading" ] [ h2 [] [ text (model.selectedCategory ++ " Conspiracies") ]]
+                , div [] (List.map (viewSummaries) model.summaries)
+                ]
+            ]
         ]
- 
+
+-- viewSummaries creates the HTML that displays the Conspiracy
+-- summaries for the selected category.
+viewSummaries : Conspiracy -> (Html Msg)
 viewSummaries summary = 
     div [ class "conspiracy-tease"]
         [ div [ class "conspiracy-title"] 
@@ -25,48 +60,133 @@ viewSummaries summary =
         ,div [ class "conspiracy-summary"] 
             [ p [] [text summary.summary ]]
         ,div [] 
-           [a [href "#"] [(text "View More Link Here")]]
+            [a [href "#"] [(text "More...")]]
         ]
- 
-viewTag selectedTag tag =
+
+-- viewCategory creates the navigation div for each category.  The function als
+-- determines if the current category is the one the user has selected. If 
+-- it is then it adds the selected class.
+viewCategory : String -> Category -> (Html Msg)
+viewCategory selectedCategory category =
     div
-        [ classList [ ("tag",True), ( "selected", selectedTag == tag ) ]
-        , onClick { operation = "SELECT_TAG", data = tag }
+        [ classList [ ("category",True), ( "selected", selectedCategory == category.name ) ]
+        , onClick (SendConspiraciesRequest category)
         ]
-        [text tag]
- 
- 
-initialModel =
-    { tags = ["All"
-              , "9/11"
-              , "Deep State"
-              , "New World Order"
-              , "UFO"
-              , "Untagged"]       
-     , selectedTag = "All"
-     , summaryPlaceholders = [
-         { title = "Conspiracy Title Placeholder"
-           ,summary = "Concept of the number one, rogue with pretty stories for which there's little good evidence from which we spring Hypatia a mote of dust suspended in a sunbeam hydrogen atoms take root and flourish gathered by gravity Hypatia! Vangelis extraplanetary made in the interiors of collapsing stars vanquish the impossible! Birth galaxies. Inconspicuous motes of rock and gas Tunguska event, Orion's sword trillion! Worldlets vastness is bearable only through love rich in heavy atoms as a patch of light tesseract and billions upon billions upon billions upon billions upon billions upon billions upon billions!"
-         }
-         ,{ title = "Conspiracy Title Placeholder"
-            ,summary = "Emerged into consciousness intelligent beings, science the sky calls to us the ash of stellar alchemy laws of physics, dream of the mind's eye. Something incredible is waiting to be known billions upon billions decipherment not a sunrise but a galaxyrise descended from astronomers radio telescope concept of the number one muse about Euclid tesseract billions upon billions, preserve and cherish that pale blue dot intelligent beings tingling of the spine Sea of Tranquility Hypatia. Globular star cluster rich in mystery culture descended from astronomers ship of the imagination Apollonius of Perga. Birth Apollonius of Perga. Dispassionate extraterrestrial observer. How far away and billions upon billions upon billions upon billions upon billions upon billions upon billions!"
-         }
-         ,{ title = "Conspiracy Title Placeholder"
-            ,summary = "Colonies, hydrogen atoms Flatland tingling of the spine quasar. Billions upon billions! As a patch of light decipherment consciousness permanence of the stars cosmic fugue brain is the seed of intelligence from which we spring astonishment science, take root and flourish explorations! Apollonius of Perga intelligent beings. Cambrian explosion? Consciousness, network of wormholes. Intelligent beings a mote of dust suspended in a sunbeam encyclopaedia galactica, Euclid laws of physics the only home we've ever known a billion trillion? A mote of dust suspended in a sunbeam, great turbulent clouds Vangelis with pretty stories for which there's little good evidence brain is the seed of intelligence hearts of the stars and billions upon billions upon billions upon billions upon billions upon billions upon billions."
-         }
-     ]
-    }
- 
+        [text category.name]
+
+
+-- init does what you might think it does, it initializes the applicaiton.
+-- In this app, I need to fetch the list of tags when the page loads so 
+-- the user has some navigation to work with so I make the call to the
+-- httpCommand function.
+init : ( Model, Cmd Msg )
+init = 
+    let model = { categories = []
+                , errorMsg = Nothing 
+                , selectedCategory = "All"
+                , summaries = []
+                }
+    in 
+        ( model,  getCategoriesCommand) 
+
+-- conspiracyDecoder is the code that pulls the data out of the JSON object
+-- and creates a Conspiracy object
+conspiracyDecoder : Decoder Conspiracy
+conspiracyDecoder = 
+    map5 Conspiracy  
+        (field "title" string)
+        (field "page_id" string)
+        (field "summary" string)
+        (field "content" string)
+        (field "background" string)
+
+
+-- categoryDecoder is the code that pulls the data out of the JSON object
+-- and creates a Category object
+categoryDecoder : Decoder Category
+categoryDecoder = 
+    map3 Category   
+        (field "id" int)
+        (field "name" string)
+        (field "approved" int)
+
+-- getCategoriesCommand is responsible for making the HTTP GET
+-- call to fetch the tags.  |> is a pipe operator and I'm using to create a 'pipeline'.  
+-- The Json.Decode.list tagDecoder is passed to the Http.get call as the last parameter
+-- and is responsible for turning the JSON Array of categories into an Elm list of Categories.
+-- The List of Categories from the decoder become the parameter of the DataRecieved Msg and
+-- eventually become the navigation list
+getCategoriesCommand : Cmd Msg
+getCategoriesCommand =
+    Json.Decode.list categoryDecoder
+        |> Http.get "http://localhost:8088/categories"
+        |> Http.send DataReceived
+
+-- getConspiracies is responsible for making the HTTP GET
+-- call to fetch the conspiracies for a given category.  The |> is a pipe operator and I'm 
+-- using to create a 'pipeline'.  The Json.Decode.list conspiracyDecoder is passed to 
+-- the Http.get call as the last parameter  and is responsible for turning the JSON 
+-- Array of Category object into an Elm list of Conspiracies.  The List of conspiracies 
+-- from the decoder become the parameter of the DataRecieved Msg and
+-- eventually become the content on the right of the page
+getConspiracies : Int -> Cmd Msg
+getConspiracies category_id =
+    Json.Decode.list conspiracyDecoder
+        |> Http.get (String.concat ["http://localhost:8088/categories/", (toString category_id), "/conspiracies"])
+        |> Http.send ConspiracyDataReceived
+
+
+-- update drives the changes in the UI and interaction with the server.
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    if msg.operation == "SELECT_TAG" then
-        { model | selectedTag = msg.data }
-    else
-        model
- 
- 
+    
+    case msg of 
+        DataReceived (Ok categories) -> 
+            ({ model | categories = categories, errorMsg = Nothing }, Cmd.none)
+
+        DataReceived (Err httpError) ->
+            ({ model | errorMsg = Just (createErrorMessage httpError) }, Cmd.none)
+        
+        ConspiracyDataReceived (Ok conspiracies) -> 
+            ({ model | summaries = conspiracies, errorMsg = Nothing }, Cmd.none)
+
+        ConspiracyDataReceived (Err httpError) ->
+            ({ model | errorMsg = Just (createErrorMessage httpError) }, Cmd.none)
+        
+        SendConspiraciesRequest category ->
+            ( { model | selectedCategory = category.name }, (getConspiracies category.id) )
+            
+        SendGetCategoriesRequest category ->  
+            ( { model | selectedCategory = category }, getCategoriesCommand )
+
+        SelectCategory category -> 
+            ({ model | selectedCategory = category }, Cmd.none)
+
+-- createErrorMessage generates a string that gives the user a 
+-- human understandable error message 
+createErrorMessage : Http.Error -> String
+createErrorMessage httpError =
+    case httpError of
+        Http.BadUrl message ->
+            message
+
+        Http.Timeout ->
+            "Server is taking too long to respond. Please try again later."
+
+        Http.NetworkError ->
+            "It appears you don't have an Internet connection right now."
+
+        Http.BadStatus response ->
+            response.status.message
+
+        Http.BadPayload message response ->
+            message
+
+main : Program Never Model Msg
 main =
-    Html.beginnerProgram
-        { model = initialModel
+    program
+        { init = init
         , view = view
         , update = update
+        , subscriptions = \_ -> Sub.none
         }
